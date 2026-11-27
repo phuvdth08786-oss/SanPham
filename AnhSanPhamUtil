@@ -1,0 +1,85 @@
+package com.example.quanlyquanmicay.util;
+
+import jakarta.servlet.http.Part;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
+
+public class AnhSanPhamUtil {
+
+
+    private static final String UPLOAD_FOLDER =
+            System.getProperty("user.home")
+                    + "/QuanLyQuanMiCay/images/san-pham";
+
+
+    public static String luuAnh(Part filePart) throws IOException {
+
+        if (filePart == null || filePart.getSize() == 0) {
+            return null;
+        }
+
+        if (filePart.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException(
+                    "Ảnh không được vượt quá 5MB."
+            );
+        }
+
+        String contentType = filePart.getContentType();
+
+        if (contentType == null ||
+                !(contentType.equals("image/jpeg")
+                        || contentType.equals("image/png")
+                        || contentType.equals("image/jfif")
+                        || contentType.equals("image/webp")
+                        || contentType.equals("image/gif"))) {
+
+            throw new IllegalArgumentException(
+                    "Chỉ chấp nhận ảnh JPG, PNG, WEBP hoặc GIF."
+            );
+        }
+
+        String fileName = filePart.getSubmittedFileName();
+
+        if (fileName == null || !fileName.contains(".")) {
+            throw new IllegalArgumentException("File ảnh không hợp lệ.");
+        }
+
+        String extension = fileName.substring(
+                fileName.lastIndexOf(".")
+        ).toLowerCase();
+
+        if (!extension.matches("\\.(jpg|jpeg|png|webp|gif|jfif)")) {
+            throw new IllegalArgumentException(
+                    "Định dạng ảnh không hợp lệ."
+            );
+        }
+
+        String tenAnh = UUID.randomUUID() + extension;
+
+        Path folder = Paths.get(UPLOAD_FOLDER);
+
+        Files.createDirectories(folder);
+
+        Path destination = folder.resolve(tenAnh);
+
+        try (InputStream input = filePart.getInputStream()) {
+            Files.copy(
+                    input,
+                    destination,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+        }
+
+        return "/image/san-pham/" + tenAnh;
+    }
+
+    public static Path getUploadFolder() {
+        return Paths.get(UPLOAD_FOLDER);
+    }
+}
