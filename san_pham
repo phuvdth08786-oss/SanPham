@@ -1,0 +1,658 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Quản lý sản phẩm</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/style.css?v=3">
+</head>
+
+<body>
+
+<div class="app-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div>
+            <div class="sidebar-brand">
+                <span>🍜</span>
+                <span>Mì Cay Seoul 7 Cấp</span>
+            </div>
+
+            <div class="sidebar-admin">
+                <span class="admin-avatar">Q</span>
+                <div>
+                    <div class="fw-semibold small">Quản Lý Cửa Hàng</div>
+                    <div class="text-white-50" style="font-size:0.72rem;">
+                        Admin
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-group-title">
+                Tổng quan &amp; Bán hàng
+            </div>
+
+            <ul class="sidebar-menu">
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/HomeServletServlet-servlet">
+                        <span>🏠</span>
+                        <span>Trang chủ</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/ban">
+                        <span>🍽️</span>
+                        <span>Bàn</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link active"
+                       href="${pageContext.request.contextPath}/san-pham">
+                        <span>🍜</span>
+                        <span>Sản phẩm</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/hoa-don">
+                        <span>🧾</span>
+                        <span>Hóa đơn</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/hoa-don-chi-tiet">
+                        <span>📋</span>
+                        <span>Chi tiết hóa đơn</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/khach-hang">
+                        <span>🙋</span>
+                        <span>Khách hàng</span>
+                    </a>
+                </li>
+
+            </ul>
+
+            <div class="sidebar-group-title">
+                Ưu đãi, Nhân sự &amp; Hệ thống
+            </div>
+
+            <ul class="sidebar-menu">
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/khuyen-mai">
+                        <span>🏷️</span>
+                        <span>Khuyến mãi</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/voucher">
+                        <span>🎟️</span>
+                        <span>Voucher</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/nhan-vien">
+                        <span>👨‍🍳</span>
+                        <span>Nhân viên</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/quan-ly">
+                        <span>👔</span>
+                        <span>Quản lý</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="sidebar-link"
+                       href="${pageContext.request.contextPath}/nhat-ki">
+                        <span>🕒</span>
+                        <span>Nhật ký hoạt động</span>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+        <div class="sidebar-footer">
+            <a class="sidebar-link mb-0"
+               href="${pageContext.request.contextPath}/HomeServletServlet-servlet">
+                <span>↪</span>
+                <span>Đăng xuất</span>
+            </a>
+        </div>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <div class="topbar">
+            <h1 class="topbar-title">Quản lý sản phẩm</h1>
+            <span class="user-badge">Q</span>
+        </div>
+
+        <div class="content-container">
+
+
+            <c:if test="${param.success == '1'}">
+                <div class="alert alert-success py-2">
+                    Thao tác sản phẩm thành công!
+                </div>
+            </c:if>
+
+            <c:if test="${not empty error}">
+                <div class="alert alert-danger py-2">
+                    ${error}
+                </div>
+            </c:if>
+
+
+            <div class="row g-3 mb-3">
+
+                <div class="col-md-4">
+                    <div class="kpi-card accent-blue">
+                        <div class="kpi-label">Tổng sản phẩm</div>
+                        <div class="kpi-value">${tongSanPham}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="kpi-card accent-green">
+                        <div class="kpi-label">Đang bán</div>
+                        <div class="kpi-value">${dangBan}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="kpi-card accent-amber">
+                        <div class="kpi-label">Ngừng bán</div>
+                        <div class="kpi-value">${ngungBan}</div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <section class="section-panel product-form-panel mb-3">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h2 class="h6 fw-bold mb-0">
+                        <c:choose>
+                            <c:when test="${sanPhamSua != null}">
+                                Cập nhật sản phẩm
+                            </c:when>
+                            <c:otherwise>
+                                Thêm sản phẩm mới
+                            </c:otherwise>
+                        </c:choose>
+                    </h2>
+
+                    <c:if test="${sanPhamSua != null}">
+                        <a href="${pageContext.request.contextPath}/san-pham"
+                           class="btn btn-outline-secondary btn-sm">
+                            Hủy cập nhật
+                        </a>
+                    </c:if>
+
+                </div>
+
+                <form method="post"
+                      action="${pageContext.request.contextPath}/san-pham"
+                      enctype="multipart/form-data">
+
+                    <c:choose>
+                        <c:when test="${sanPhamSua != null}">
+                            <input type="hidden" name="action" value="update">
+
+                            <input type="hidden"
+                                   name="maSanPham"
+                                   value="${sanPhamSua.maSanPham}">
+                        </c:when>
+
+                        <c:otherwise>
+                            <input type="hidden" name="action" value="add">
+                        </c:otherwise>
+                    </c:choose>
+
+                    <div class="row g-2">
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">
+                                Tên sản phẩm
+                            </label>
+
+                            <input type="text"
+                                   name="tenSanPham"
+                                   class="form-control form-control-sm"
+                                   value="${sanPhamSua.tenSanPham}"
+                                   maxlength="255"
+                                   placeholder="Nhập tên sản phẩm"
+                                   required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">
+                                Giá tiền (VNĐ)
+                            </label>
+
+                            <input type="number"
+                                   name="giaTien"
+                                   class="form-control form-control-sm"
+                                   value="${sanPhamSua.giaTien}"
+                                   min="0.01"
+                                   step="0.01"
+                                   placeholder="Nhập giá"
+                                   required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">
+                                Danh mục
+                            </label>
+
+                            <select name="danhMuc"
+                                    class="form-select form-select-sm"
+                                    required>
+
+                                <option value="">-- Chọn danh mục --</option>
+
+                                <c:forEach var="dm" items="${dsDanhMuc}">
+                                    <option value="${dm}"
+                                        ${sanPhamSua.danhMuc == dm ? 'selected' : ''}>
+                                        ${dm}
+                                    </option>
+                                </c:forEach>
+
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold">
+                                Ảnh sản phẩm
+                            </label>
+
+                            <input type="file"
+                                   name="anhSanPham"
+                                   id="anhSanPham"
+                                   class="form-control form-control-sm"
+                                   accept=".jpg,.jpeg,.png,.webp,.gif"
+                                   ${sanPhamSua == null ? 'required' : ''}>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold">
+                                Mô tả
+                            </label>
+
+                            <input type="text"
+                                   name="moTa"
+                                   class="form-control form-control-sm"
+                                   value="${sanPhamSua.moTa}"
+                                   placeholder="Nhập mô tả sản phẩm">
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end gap-3">
+
+                            <c:choose>
+                                <c:when test="${sanPhamSua != null}">
+                                    <img src="${pageContext.request.contextPath}${sanPhamSua.anhSanPham}"
+                                         id="previewAnh"
+                                         class="product-preview"
+                                         alt="Ảnh sản phẩm">
+                                </c:when>
+
+                                <c:otherwise>
+                                    <img id="previewAnh"
+                                         class="product-preview"
+                                         style="display:none;"
+                                         alt="Ảnh xem trước">
+                                </c:otherwise>
+                            </c:choose>
+
+                            <button type="submit" class="btn btn-primary btn-sm">
+
+                                <c:choose>
+                                    <c:when test="${sanPhamSua != null}">
+                                        Cập nhật sản phẩm
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        + Thêm sản phẩm
+                                    </c:otherwise>
+                                </c:choose>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <section class="section-panel">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h2 class="h6 fw-bold mb-0">
+                        Danh sách sản phẩm
+                    </h2>
+
+                    <span class="text-muted small">
+                        Tổng số: ${tongSanPham} sản phẩm
+                    </span>
+
+                </div>
+
+
+                <div class="row mb-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">
+                            Lọc theo danh mục
+                        </label>
+
+                        <select id="locDanhMuc"
+                                class="form-select form-select-sm">
+
+                            <option value="">Tất cả sản phẩm</option>
+
+                            <c:forEach var="dm" items="${dsDanhMuc}">
+                                <option value="${dm}">${dm}</option>
+                            </c:forEach>
+
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- BẢNG -->
+                <div class="table-responsive">
+
+                    <table id="tableSanPham"
+                           class="table table-bordered table-hover align-middle w-100">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã SP</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Danh mục</th>
+                                <th>Giá tiền</th>
+                                <th>Ảnh</th>
+                                <th>Mô tả</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <c:choose>
+                                <c:when test="${not empty dsSanPham}">
+
+                                    <c:forEach var="sp"
+                                               items="${dsSanPham}"
+                                               varStatus="st">
+
+                                        <tr>
+
+                                            <td>${st.index + 1}</td>
+
+
+                                            <td>SP<fmt:formatNumber value="${st.index + 1}" pattern="00"/></td>
+
+                                            <td>${sp.tenSanPham}</td>
+
+                                            <td>
+                                                <c:out value="${sp.danhMuc}" default="Khác"/>
+                                            </td>
+
+                                            <td>
+                                                <fmt:formatNumber
+                                                        value="${sp.giaTien}"
+                                                        pattern="#,##0.##"/> VNĐ
+                                            </td>
+
+                                            <td class="text-center">
+                                                <img src="${pageContext.request.contextPath}${sp.anhSanPham}"
+                                                     alt="${sp.tenSanPham}"
+                                                     class="product-table-image">
+                                            </td>
+
+                                            <td>
+                                                <c:out value="${sp.moTa}" default=""/>
+                                            </td>
+
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${sp.trangThai}">
+                                                        <span class="badge bg-success">
+                                                            Đang bán
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:otherwise>
+                                                        <span class="badge bg-secondary">
+                                                            Ngừng bán
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
+
+                                            <td>
+                                                <div class="d-flex gap-1">
+
+                                                    <a href="${pageContext.request.contextPath}/san-pham?edit=${sp.maSanPham}"
+                                                       class="btn btn-sm btn-warning">
+                                                        Sửa
+                                                    </a>
+
+                                                    <c:choose>
+
+                                                        <c:when test="${sp.trangThai}">
+                                                            <form method="post"
+                                                                  action="${pageContext.request.contextPath}/san-pham"
+                                                                  onsubmit="return confirm('Bạn có chắc chắn muốn ngừng bán sản phẩm này không?')">
+
+                                                                <input type="hidden"
+                                                                       name="action"
+                                                                       value="stop">
+
+                                                                <input type="hidden"
+                                                                       name="maSanPham"
+                                                                       value="${sp.maSanPham}">
+
+                                                                <button type="submit"
+                                                                        class="btn btn-sm btn-danger">
+                                                                    Ngừng bán
+                                                                </button>
+                                                            </form>
+                                                        </c:when>
+
+                                                        <c:otherwise>
+                                                            <form method="post"
+                                                                  action="${pageContext.request.contextPath}/san-pham"
+                                                                  onsubmit="return confirm('Bạn có muốn tiếp tục bán sản phẩm này không?')">
+
+                                                                <input type="hidden"
+                                                                       name="action"
+                                                                       value="continue">
+
+                                                                <input type="hidden"
+                                                                       name="maSanPham"
+                                                                       value="${sp.maSanPham}">
+
+                                                                <button type="submit"
+                                                                        class="btn btn-sm btn-success">
+                                                                    Tiếp tục bán
+                                                                </button>
+                                                            </form>
+                                                        </c:otherwise>
+
+                    </c:choose>
+
+                                                </div>
+                                            </td>
+
+                                        </tr>
+
+                                    </c:forEach>
+
+                                </c:when>
+
+                                <c:otherwise>
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-4">
+                                            Chưa có sản phẩm trong hệ thống.
+                                        </td>
+                                    </tr>
+                                </c:otherwise>
+                            </c:choose>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+
+<script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.js"></script>
+
+<script>
+
+
+    const inputAnh = document.getElementById("anhSanPham");
+    const preview = document.getElementById("previewAnh");
+
+    if (inputAnh && preview) {
+
+        inputAnh.addEventListener("change", function () {
+
+            const file = this.files[0];
+
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = "block";
+            }
+
+        });
+
+    }
+
+
+    $(document).ready(function () {
+
+        if ($.fn.DataTable.isDataTable("#tableSanPham")) {
+            return;
+        }
+
+        const table = new DataTable("#tableSanPham", {
+
+            pageLength: 5,
+
+            lengthMenu: [5, 10, 14, 20],
+
+            stateSave: true,
+
+            ordering: true,
+
+            searching: true,
+
+            autoWidth: false,
+
+            language: {
+
+                search: "Tìm kiếm:",
+
+                lengthMenu: "Hiển thị _MENU_ sản phẩm",
+
+                info: "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ sản phẩm",
+
+                infoEmpty: "Không có sản phẩm",
+
+                zeroRecords: "Không tìm thấy sản phẩm",
+
+                emptyTable: "Chưa có sản phẩm",
+
+                paginate: {
+                    first: "Đầu",
+                    last: "Cuối",
+                    next: "Sau",
+                    previous: "Trước"
+                }
+
+            },
+
+            columnDefs: [
+                {
+                    targets: [0, 5, 8],
+                    orderable: false
+                }
+            ]
+
+        });
+
+
+        $("#locDanhMuc").on("change", function () {
+            table.column(3).search(this.value).draw();
+        });
+
+    });
+
+</script>
+
+</body>
+</html>
