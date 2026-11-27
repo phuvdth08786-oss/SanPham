@@ -1,0 +1,73 @@
+package com.example.quanlyquanmicay.controller;
+
+import com.example.quanlyquanmicay.util.AnhSanPhamUtil;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+@WebServlet("/image/san-pham/*")
+public class AnhSanPhamServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
+
+        String tenAnh = request.getPathInfo();
+
+        if (tenAnh == null || tenAnh.length() <= 1) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+
+        tenAnh = tenAnh.substring(1);
+
+        if (tenAnh.contains("/") || tenAnh.contains("\\")
+                || tenAnh.contains("..")) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        Path file = AnhSanPhamUtil.getUploadFolder().resolve(tenAnh);
+
+        if (!Files.exists(file) || !Files.isRegularFile(file)) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String fileNameStr = file.getFileName().toString().toLowerCase();
+        String contentType = getServletContext().getMimeType(fileNameStr);
+
+
+        if (contentType == null) {
+            if (fileNameStr.endsWith(".jfif") || fileNameStr.endsWith(".jpg") || fileNameStr.endsWith(".jpeg")) {
+                contentType = "image/jpeg";
+            } else if (fileNameStr.endsWith(".png")) {
+                contentType = "image/png";
+            } else if (fileNameStr.endsWith(".webp")) {
+                contentType = "image/webp";
+            } else if (fileNameStr.endsWith(".gif")) {
+                contentType = "image/gif";
+            }
+        }
+
+        if (contentType == null || !contentType.startsWith("image/")) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        response.setContentType(contentType);
+        response.setContentLengthLong(Files.size(file));
+
+        Files.copy(file, response.getOutputStream());
+    }
+}
