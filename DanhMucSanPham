@@ -1,0 +1,18 @@
+package com.example.quanlyquanmicay.model;
+
+import java.util.Arrays;
+import java.util.List;
+
+public class DanhMucSanPham {
+
+    public static List<String> getDanhSach() {
+        return Arrays.asList(
+                "Món nước",
+                "Món trộn",
+                "Nước uống",
+                "Đồ chiên",
+                "Món ăn kèm",
+                "Khác"
+        );
+    }
+}
