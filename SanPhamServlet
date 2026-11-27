@@ -1,0 +1,299 @@
+
+package com.example.quanlyquanmicay.controller;
+
+import com.example.quanlyquanmicay.model.SanPham;
+import com.example.quanlyquanmicay.model.DanhMucSanPham;
+import com.example.quanlyquanmicay.repository.SanPhamRepository;
+import com.example.quanlyquanmicay.util.AnhSanPhamUtil;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
+
+@WebServlet(name = "SanPhamServlet", value = "/san-pham")
+
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 10 * 1024 * 1024
+)
+
+public class SanPhamServlet extends HttpServlet {
+
+    private final SanPhamRepository repository =
+            new SanPhamRepository();
+
+    // Hiển thị danh sách sản phẩm
+    @Override
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+
+        try {
+
+            String edit = request.getParameter("edit");
+
+            if (edit != null && !edit.trim().isEmpty()) {
+
+                int id = Integer.parseInt(edit);
+
+                SanPham sp = repository.findById(id);
+
+                if (sp != null) {
+                    request.setAttribute("sanPhamSua", sp);
+                }
+            }
+
+            // Lấy danh sách sản phẩm
+            List<SanPham> dsSanPham = repository.findAll();
+
+            request.setAttribute("dsSanPham", dsSanPham);
+
+            // Danh mục
+            request.setAttribute(
+                    "dsDanhMuc",
+                    DanhMucSanPham.getDanhSach()
+            );
+
+            // Thống kê
+            request.setAttribute(
+                    "tongSanPham",
+                    repository.countAll()
+            );
+
+            request.setAttribute(
+                    "dangBan",
+                    repository.countDangBan()
+            );
+
+            request.setAttribute(
+                    "ngungBan",
+                    repository.countNgungBan()
+            );
+
+            // Chuyển sang JSP
+            request.getRequestDispatcher("/jsp/san_pham.jsp")
+                    .forward(request, response);
+
+        } catch (NumberFormatException e) {
+
+            response.sendError(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Mã sản phẩm không hợp lệ."
+            );
+
+        } catch (Exception e) {
+
+            throw new ServletException(
+                    "Không thể tải danh sách sản phẩm.",
+                    e
+            );
+        }
+    }
+
+    // Xử lý thao tác
+    @Override
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+
+        String action = request.getParameter("action");
+
+        try {
+
+            if ("add".equals(action)) {
+
+                themSanPham(request);
+
+            } else if ("update".equals(action)) {
+
+                suaSanPham(request);
+
+            } else if ("stop".equals(action)) {
+
+                int id = Integer.parseInt(
+                        request.getParameter("maSanPham")
+                );
+
+                repository.stopSelling(id);
+
+            } else if ("continue".equals(action)) {
+
+                int id = Integer.parseInt(
+                        request.getParameter("maSanPham")
+                );
+
+                repository.continueSelling(id);
+
+            } else {
+
+                response.sendError(
+                        HttpServletResponse.SC_BAD_REQUEST
+                );
+                return;
+            }
+
+            response.sendRedirect(
+                    request.getContextPath() + "/san-pham?success=1"
+            );
+
+        } catch (NumberFormatException e) {
+
+            response.sendError(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Mã sản phẩm hoặc giá tiền không hợp lệ."
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            response.sendError(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    e.getMessage()
+            );
+
+        } catch (Exception e) {
+
+            throw new ServletException(
+                    "Lỗi xử lý sản phẩm.",
+                    e
+            );
+        }
+    }
+
+    // Thêm sản phẩm
+    private void themSanPham(HttpServletRequest request)
+            throws Exception {
+
+        String ten = request.getParameter("tenSanPham");
+        String gia = request.getParameter("giaTien");
+        String danhMuc = request.getParameter("danhMuc");
+        String moTa = request.getParameter("moTa");
+
+        kiemTraDuLieu(ten, gia, danhMuc);
+
+        SanPham sp = new SanPham();
+
+        sp.setTenSanPham(ten.trim());
+        sp.setGiaTien(new BigDecimal(gia.trim()));
+        sp.setDanhMuc(danhMuc);
+        sp.setMoTa(moTa);
+
+        Part filePart = request.getPart("anhSanPham");
+
+        String anh = AnhSanPhamUtil.luuAnh(filePart);
+
+        if (anh == null) {
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn ảnh sản phẩm."
+            );
+        }
+
+        sp.setAnhSanPham(anh);
+
+        repository.save(sp);
+    }
+
+    // Sửa sản phẩm
+    private void suaSanPham(HttpServletRequest request)
+            throws Exception {
+
+        int id = Integer.parseInt(
+                request.getParameter("maSanPham")
+        );
+
+        SanPham sp = repository.findById(id);
+
+        if (sp == null) {
+            throw new IllegalArgumentException(
+                    "Không tìm thấy sản phẩm."
+            );
+        }
+
+        String ten = request.getParameter("tenSanPham");
+        String gia = request.getParameter("giaTien");
+        String danhMuc = request.getParameter("danhMuc");
+        String moTa = request.getParameter("moTa");
+
+        kiemTraDuLieu(ten, gia, danhMuc);
+
+        sp.setTenSanPham(ten.trim());
+        sp.setGiaTien(new BigDecimal(gia.trim()));
+        sp.setDanhMuc(danhMuc);
+        sp.setMoTa(moTa);
+
+        // Giữ ảnh cũ nếu không chọn ảnh mới
+        Part filePart = request.getPart("anhSanPham");
+
+        String anhMoi = AnhSanPhamUtil.luuAnh(filePart);
+
+        if (anhMoi != null) {
+            sp.setAnhSanPham(anhMoi);
+        }
+
+        repository.update(sp);
+    }
+
+    // Kiểm tra dữ liệu
+    private void kiemTraDuLieu(
+            String ten,
+            String gia,
+            String danhMuc
+    ) {
+
+        if (ten == null || ten.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Tên sản phẩm không được để trống."
+            );
+        }
+
+        if (ten.trim().length() > 255) {
+            throw new IllegalArgumentException(
+                    "Tên sản phẩm không được vượt quá 255 ký tự."
+            );
+        }
+
+        if (gia == null || gia.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Giá tiền không được để trống."
+            );
+        }
+
+        BigDecimal giaTien;
+
+        try {
+            giaTien = new BigDecimal(gia.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "Giá tiền không hợp lệ."
+            );
+        }
+
+        if (giaTien.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "Giá sản phẩm phải lớn hơn 0."
+            );
+        }
+
+        if (danhMuc == null ||
+                !DanhMucSanPham.getDanhSach().contains(danhMuc)) {
+
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn danh mục hợp lệ."
+            );
+        }
+    }
+}
