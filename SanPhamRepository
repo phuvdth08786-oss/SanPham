@@ -1,0 +1,173 @@
+package com.example.quanlyquanmicay.repository;
+
+import com.example.quanlyquanmicay.model.SanPham;
+import com.example.quanlyquanmicay.util.HibernateConfig;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import java.util.List;
+
+public class SanPhamRepository {
+
+
+    public List<SanPham> findAll() {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                    "FROM SanPham sp ORDER BY sp.maSanPham ASC",
+                    SanPham.class
+            ).list();
+        }
+    }
+
+
+    public SanPham findById(int id) {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.get(SanPham.class, id);
+        }
+    }
+
+
+    public List<SanPham> search(String keyword) {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                            "FROM SanPham sp WHERE LOWER(sp.tenSanPham) LIKE :keyword",
+                            SanPham.class
+                    )
+                    .setParameter(
+                            "keyword",
+                            "%" + keyword.toLowerCase().trim() + "%"
+                    )
+                    .list();
+        }
+    }
+
+
+    public List<SanPham> findByDanhMuc(String danhMuc) {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                            "FROM SanPham sp WHERE sp.danhMuc = :danhMuc",
+                            SanPham.class
+                    )
+                    .setParameter("danhMuc", danhMuc)
+                    .list();
+        }
+    }
+
+
+    public void save(SanPham sanPham) {
+        Transaction transaction = null;
+
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            transaction = session.beginTransaction();
+
+            sanPham.setTrangThai(true);
+            session.persist(sanPham);
+
+            transaction.commit();
+
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        }
+    }
+
+
+    public void update(SanPham sanPham) {
+        Transaction transaction = null;
+
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            transaction = session.beginTransaction();
+
+            SanPham sp = session.get(
+                    SanPham.class,
+                    sanPham.getMaSanPham()
+            );
+
+            if (sp != null) {
+                sp.setTenSanPham(sanPham.getTenSanPham());
+                sp.setGiaTien(sanPham.getGiaTien());
+                sp.setDanhMuc(sanPham.getDanhMuc());
+                sp.setMoTa(sanPham.getMoTa());
+
+                if (sanPham.getAnhSanPham() != null
+                        && !sanPham.getAnhSanPham().isEmpty()) {
+                    sp.setAnhSanPham(sanPham.getAnhSanPham());
+                }
+            }
+
+            transaction.commit();
+
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        }
+    }
+
+
+    public void stopSelling(int id) {
+        capNhatTrangThai(id, false);
+    }
+
+
+    public void continueSelling(int id) {
+        capNhatTrangThai(id, true);
+    }
+
+
+    private void capNhatTrangThai(int id, boolean trangThai) {
+        Transaction transaction = null;
+
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            transaction = session.beginTransaction();
+
+            SanPham sp = session.get(SanPham.class, id);
+
+            if (sp != null) {
+                sp.setTrangThai(trangThai);
+            }
+
+            transaction.commit();
+
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        }
+    }
+
+
+    public long countAll() {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                    "SELECT COUNT(sp) FROM SanPham sp",
+                    Long.class
+            ).getSingleResult();
+        }
+    }
+
+
+    public long countDangBan() {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                    "SELECT COUNT(sp) FROM SanPham sp WHERE sp.trangThai = true",
+                    Long.class
+            ).getSingleResult();
+        }
+    }
+
+
+    public long countNgungBan() {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                    "SELECT COUNT(sp) FROM SanPham sp WHERE sp.trangThai = false",
+                    Long.class
+            ).getSingleResult();
+        }
+    }
+}
