@@ -1,0 +1,98 @@
+
+package com.example.quanlyquanmicay.model;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "SAN_PHAM")
+public class SanPham {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ma_san_pham")
+    private int maSanPham;
+
+    @Column(name = "ten_san_pham", nullable = false, length = 255)
+    private String tenSanPham;
+
+    @Column(name = "gia_tien", nullable = false, precision = 12, scale = 2)
+    private BigDecimal giaTien;
+
+    @Column(name = "anh_san_pham", length = 500)
+    private String anhSanPham;
+
+    @Column(name = "mo_ta", columnDefinition = "NVARCHAR(MAX)")
+    private String moTa;
+
+    @Column(name = "trang_thai", nullable = false)
+    private boolean trangThai = true;
+
+    @Column(name = "danh_muc", nullable = false, length = 100)
+    private String danhMuc;
+
+    public SanPham() {
+    }
+
+    public int getMaSanPham() {
+        return maSanPham;
+    }
+
+    public void setMaSanPham(int maSanPham) {
+        this.maSanPham = maSanPham;
+    }
+
+    public String getTenSanPham() {
+        return tenSanPham;
+    }
+
+    public void setTenSanPham(String tenSanPham) {
+        this.tenSanPham = tenSanPham;
+    }
+
+    public BigDecimal getGiaTien() {
+        return giaTien;
+    }
+
+    public void setGiaTien(BigDecimal giaTien) {
+        this.giaTien = giaTien;
+    }
+
+    public String getAnhSanPham() {
+        return anhSanPham;
+    }
+
+    public void setAnhSanPham(String anhSanPham) {
+        this.anhSanPham = anhSanPham;
+    }
+
+    public String getMoTa() {
+        return moTa;
+    }
+
+    public void setMoTa(String moTa) {
+        this.moTa = moTa;
+    }
+
+    public boolean isTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(boolean trangThai) {
+        this.trangThai = trangThai;
+    }
+
+    public String getDanhMuc() {
+        return danhMuc;
+    }
+
+    public void setDanhMuc(String danhMuc) {
+        this.danhMuc = danhMuc;
+    }
+
+
+    @Transient
+    public String getMaSanPhamHienThi() {
+        return String.format("SP%03d", maSanPham);
+    }
+}
